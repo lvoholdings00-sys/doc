@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LVO Holdings — Documents</title>
+<link rel="icon" type="image/png" href="assets/logo.png"/>
+<link rel="apple-touch-icon" href="assets/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0c; --bg-raised:#111114; --line:#242327; --line-soft:#1a1a1d;
+    --ink:#eae7e0; --ink-dim:#8b8a86; --ink-faint:#5c5b58;
+    --brass:#C8A96E; --brass-dim:#8a7238; --red:#b3564a; --green:#7a9a6f; --radius:2px;
+    --btn-text:#0a0a0c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;margin:0;}
+  a{color:inherit;text-decoration:none;}
+  button,input,select,textarea{font-family:inherit;color:inherit;}
+  ::selection{background:var(--brass-dim);color:#000;}
+  #app{display:flex;min-height:100vh;}
+
+  .back-menu{
+    display:inline-flex; align-items:center; gap:7px; align-self:flex-start;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+    letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-dim); cursor:pointer;
+    padding:8px 12px; border:1px solid var(--line);
+    background:var(--bg-raised); border-radius:var(--radius);
+    transition:color .15s, border-color .15s, background .15s;
+    margin-bottom:26px;
+  }
+  .back-menu:hover{ color:var(--ink); border-color:var(--brass-dim); }
+  .back-menu .arrow{ font-size:12px; line-height:0; }
+
+  .sidebar{width:280px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:36px 32px 24px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .brand-seal{width:34px;height:34px;border:1px solid var(--brass-dim);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:16px;color:var(--brass);margin-bottom:14px;flex-shrink:0;}
+  .brand h1{font-size:22px;letter-spacing:-.01em;color:var(--ink);}
+  .brand .eyebrow{margin-top:4px;}
+  .side-divider{height:1px;background:var(--line);margin:28px 0 22px;}
+  .side-links{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+  .side-link{padding:9px 10px;border-radius:var(--radius);font-size:14.5px;color:var(--ink-dim);display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;border:1px solid transparent;transition:background .12s,color .12s,border-color .12s;}
+  .side-link:hover{color:var(--ink);background:var(--bg-raised);}
+  .side-link.active{color:var(--ink);background:var(--bg-raised);border-color:var(--line);}
+  .side-link .count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-faint);}
+  .new-folder-link{margin-top:6px;font-size:13px;color:var(--brass);cursor:pointer;padding:9px 10px;}
+  .new-folder-link:hover{color:var(--ink);}
+  .sidebar-footer{margin-top:auto;padding-top:22px;border-top:1px solid var(--line);}
+  .sidebar-footer .who{font-size:13px;color:var(--ink-dim);margin-bottom:6px;}
+  .storage-bar-track{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:8px;}
+  .storage-bar-fill{height:100%;background:var(--brass);}
+
+  .main{flex:1;padding:56px 64px;min-width:0;}
+  .main-narrow{max-width:1180px;}
+  .division-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;flex-wrap:wrap;gap:16px;}
+  .head-actions{display:flex;gap:10px;}
+  .card{background:var(--bg-raised);border:1px solid var(--line);padding:22px 24px;position:relative;}
+  .form-card .form-title{margin-bottom:18px;}
+  .field-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px;}
+  input[type=text],input[type=email],input[type=file],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);padding:11px 13px;font-size:14px;border-radius:var(--radius);}
+  textarea{min-height:96px;resize:vertical;font-family:inherit;}
+  input::placeholder,textarea::placeholder{color:var(--ink-faint);}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brass-dim);}
+  select{appearance:none;-webkit-appearance:none;cursor:pointer;}
+  .btn{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--ink);color:var(--btn-text);border:none;padding:12px 20px;cursor:pointer;transition:background .15s,opacity .15s;white-space:nowrap;}
+  .btn:hover{background:var(--brass);color:var(--btn-text);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-dim);}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--brass-dim);background:transparent;}
+  .form-hint{color:var(--ink-faint);font-size:12.5px;margin-top:12px;line-height:1.6;}
+  .form-err{color:var(--red);font-size:12.5px;margin-top:12px;line-height:1.6;}
+  .empty-row{color:var(--ink-faint);font-size:14px;padding:30px 0;text-align:center;}
+  .file-table{width:100%;border-collapse:collapse;}
+  .file-table th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);font-weight:400;padding:0 0 12px;border-bottom:1px solid var(--line);}
+  .file-table td{padding:14px 0;border-bottom:1px solid var(--line-soft);font-size:14px;vertical-align:middle;}
+  .file-table tr:last-child td{border-bottom:none;}
+  .file-name{font-weight:500;display:flex;align-items:center;gap:10px;}
+  .file-icon{width:26px;height:26px;flex-shrink:0;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--brass);font-family:'IBM Plex Mono',monospace;}
+  .file-meta{color:var(--ink-dim);font-size:12.5px;}
+  .row-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .icon-btn{background:none;border:1px solid var(--line);color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 11px;cursor:pointer;border-radius:var(--radius);}
+  .icon-btn:hover{color:var(--ink);border-color:var(--brass-dim);}
+  .icon-btn.danger:hover{color:var(--red);border-color:var(--red);}
+  .drop-zone{border:1px dashed var(--line);padding:36px 24px;text-align:center;color:var(--ink-dim);font-size:13.5px;cursor:pointer;transition:border-color .15s,color .15s;margin-bottom:22px;}
+  .drop-zone:hover,.drop-zone.drag{border-color:var(--brass-dim);color:var(--ink);}
+  .drop-zone input{display:none;}
+  .search-row{display:flex;gap:12px;margin-bottom:22px;}
+  .search-row input{max-width:320px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modal{background:var(--bg-raised);border:1px solid var(--line);padding:28px;width:100%;max-width:440px;}
+  .modal.modal-wide{max-width:820px;}
+  .modal .form-title{margin-bottom:20px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+  .preview-body{max-height:70vh;overflow:auto;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--line);margin-bottom:10px;}
+  .preview-body img{max-width:100%;max-height:70vh;display:block;}
+  .preview-body video{max-width:100%;max-height:70vh;display:block;}
+  .preview-body audio{width:100%;margin:30px 20px;}
+  .preview-body iframe{width:100%;height:70vh;border:none;}
+  .preview-body pre{width:100%;max-height:70vh;overflow:auto;margin:0;padding:20px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+  .preview-unsupported{padding:60px 20px;text-align:center;color:var(--ink-dim);font-size:13.5px;line-height:1.7;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--brass-dim);color:var(--brass);padding:5px 10px;}
+  .loading{padding:80px;color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:center;}
+  @media (max-width:900px){
+    #app{flex-direction:column;} .sidebar{width:100%;height:auto;position:relative;} .main{padding:32px 24px;}
+    .file-table thead{display:none;} .file-table tr{display:flex;flex-wrap:wrap;padding:14px 0;} .file-table td{border:none;padding:4px 0;width:100%;}
+    .row-actions{justify-content:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading Documents…</div></div>
+
+<script>
+/* =========================================================
+   LVO Holdings — Documents
+
+   STATUS: operational, no auth yet. Storage is 100% client-side
+   (IndexedDB for file bytes + metadata) so it works standalone
+   right now with zero backend. Security/access-control was
+   explicitly deferred — add before this holds anything sensitive.
+
+   NEXT STEPS when you're ready to harden this:
+   1. Auth: this page currently has no login gate at all — anyone
+      with the URL who opens it in their own browser sees their own
+      empty library (IndexedDB is per-browser/per-origin, not shared
+      across users). If you want one shared company library instead
+      of per-browser local storage, you need a real backend (a
+      Worker + R2/D1, same pattern as lvo-worker) and a login step
+      like the other divisions use.
+   2. Email sending: EMAIL_WORKER below is a PLACEHOLDER endpoint.
+      Browsers can't send email directly, so "Send via email" posts
+      {to, subject, message, fileName, fileBase64} to that URL and
+      expects the backend to relay it. Point it at a real Worker
+      route (can live on lvo-worker or a new one) before this button
+      will actually deliver anything — right now it will error.
+   3. dashUrl / chatUrl below point at dash.lvo-cloud.cloud and
+      chat.lvo-cloud.cloud per your note — used by the sidebar
+      cross-links and the "Menu" back button.
+========================================================= */
+window.DOCS_CONFIG = {
+  emailWorker: "https://lvo-docs-relay.lvoholdings00.workers.dev/documents/email",
+  dashUrl: "https://dash.lvo-cloud.cloud/",
+  chatUrl: "https://chat.lvo-cloud.cloud/",
+  menuUrl: "https://lvo-cloud.cloud/"
+};
+</script>
+<script>
+(function(){
+  var cfg = window.DOCS_CONFIG;
+  var appEl = document.getElementById('app');
+  var DB_NAME = 'lvo_docs_db', DB_VERSION = 1;
+  var db = null;
+
+  var state = {
+    folders: [],       // {id, name, createdAt}
+    files: [],         // {id, name, folderId, size, type, createdAt, blob}
+    activeFolder: 'all', // 'all' | folder id
+    search: '',
+    modal: null,        // {type:'newFolder'|'rename'|'move'|'email', ...}
+    dragging: false
+  };
+
+  /* ---------------- IndexedDB ---------------- */
+  function openDb(){
+    return new Promise(function(resolve, reject){
+      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = function(e){
+        var d = e.target.result;
+        if(!d.objectStoreNames.contains('folders')) d.createObjectStore('folders', {keyPath:'id'});
+        if(!d.objectStoreNames.contains('files')) d.createObjectStore('files', {keyPath:'id'});
+      };
+      req.onsuccess = function(e){ resolve(e.target.result); };
+      req.onerror = function(e){ reject(e.target.error); };
+    });
+  }
+  function tx(storeName, mode){
+    return db.transaction(storeName, mode).objectStore(storeName);
+  }
+  function idbGetAll(storeName){
+    return new Promise(function(resolve, reject){
+      var req = tx(storeName, 'readonly').getAll();
+      req.onsuccess = function(){ resolve(req.result || []); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+  function idbPut(storeName, obj){
+    return new Promise(function(resolve, reject){
+      var req = tx(storeName, 'readwrite').put(obj);
+      req.onsuccess = function(){ resolve(); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+  function idbDelete(storeName, id){
+    return new Promise(function(resolve, reject){
+      var req = tx(storeName, 'readwrite').delete(id);
+      req.onsuccess = function(){ resolve(); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+  async function loadAll(){
+    state.folders = (await idbGetAll('folders')).sort(function(a,b){ return a.name.localeCompare(b.name); });
+    state.files = (await idbGetAll('files')).sort(function(a,b){ return b.createdAt - a.createdAt; });
+  }
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function fmtSize(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+  function fmtDate(ts){ return new Date(ts).toLocaleString(); }
+  function extOf(name){ var m = /\.([a-zA-Z0-9]+)$/.exec(name); return m ? m[1].toUpperCase() : 'FILE'; }
+  function blobToBase64(blob){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onloadend = function(){ resolve(reader.result.split(',')[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /* ---------------- DOM helper ---------------- */
+  function el(tag, attrs, children){
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function(k){
+      if(k==='class') e.className = attrs[k];
+      else if(k==='html') e.innerHTML = attrs[k];
+      else if(k.indexOf('on')===0) e.addEventListener(k.slice(2), attrs[k]);
+      else if(attrs[k]!==null && attrs[k]!==undefined) e.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){
+      if(c===null||c===undefined) return;
+      if(typeof c==='string') e.appendChild(document.createTextNode(c));
+      else e.appendChild(c);
+    });
+    return e;
+  }
+
+  function folderName(id){
+    if(id==='all'||!id) return 'All Documents';
+    var f = state.folders.filter(function(x){ return x.id===id; })[0];
+    return f ? f.name : 'Unknown';
+  }
+  function visibleFiles(){
+    var list = state.files;
+    if(state.activeFolder !== 'all') list = list.filter(function(f){ return f.folderId === state.activeFolder; });
+    if(state.search.trim()){
+      var q = state.search.trim().toLowerCase();
+      list = list.filter(function(f){ return f.name.toLowerCase().indexOf(q) !== -1; });
+    }
+    return list;
+  }
+  function fileCountFor(folderId){
+    if(folderId==='all') return state.files.length;
+    return state.files.filter(function(f){ return f.folderId===folderId; }).length;
+  }
+  function totalBytes(){ return state.files.reduce(function(a,f){ return a+f.size; }, 0); }
+
+  /* ---------------- Actions ---------------- */
+  async function handleFiles(fileList){
+    var arr = Array.prototype.slice.call(fileList);
+    for(var i=0;i<arr.length;i++){
+      var f = arr[i];
+      var rec = {
+        id: uid(), name: f.name, folderId: state.activeFolder==='all' ? null : state.activeFolder,
+        size: f.size, type: f.type || 'application/octet-stream', createdAt: Date.now(), blob: f
+      };
+      await idbPut('files', rec);
+    }
+    await loadAll();
+    render();
+  }
+
+  async function deleteFile(id){
+    if(!confirm('Delete this document? This cannot be undone.')) return;
+    await idbDelete('files', id);
+    await loadAll();
+    render();
+  }
+
+  async function createFolder(name){
+    await idbPut('folders', { id: uid(), name: name, createdAt: Date.now() });
+    await loadAll();
+  }
+
+  async function deleteFolder(id){
+    var count = fileCountFor(id);
+    var msg = count ? ('Delete "' + folderName(id) + '"? ' + count + ' document(s) inside will move to All Documents.') : ('Delete "' + folderName(id) + '"?');
+    if(!confirm(msg)) return;
+    var affected = state.files.filter(function(f){ return f.folderId===id; });
+    for(var i=0;i<affected.length;i++){
+      affected[i].folderId = null;
+      await idbPut('files', affected[i]);
+    }
+    await idbDelete('folders', id);
+    if(state.activeFolder === id) state.activeFolder = 'all';
+    await loadAll();
+    render();
+  }
+
+  async function renameFile(id, newName){
+    var f = state.files.filter(function(x){ return x.id===id; })[0];
+    if(!f) return;
+    f.name = newName;
+    await idbPut('files', f);
+    await loadAll();
+  }
+
+  async function moveFile(id, folderId){
+    var f = state.files.filter(function(x){ return x.id===id; })[0];
+    if(!f) return;
+    f.folderId = folderId==='all' ? null : folderId;
+    await idbPut('files', f);
+    await loadAll();
+  }
+
+  async function sendEmail(fileId, to, subject, message, errEl, btn){
+    var f = state.files.filter(function(x){ return x.id===fileId; })[0];
+    if(!f) return;
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try{
+      var b64 = await blobToBase64(f.blob);
+      var res = await fetch(cfg.emailWorker, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ to: to, subject: subject, message: message, fileName: f.name, fileType: f.type, fileBase64: b64 })
+      });
+      var data = null;
+      try{ data = await res.json(); }catch(_){}
+      if(!res.ok) throw new Error((data && data.error) || 'Send failed (' + res.status + ')');
+      state.modal = null;
+      render();
+    }catch(e){
+      errEl.textContent = e.message + ' — emailWorker endpoint may not be deployed yet.';
+      btn.disabled = false; btn.textContent = 'Send';
+    }
+  }
+
+  var TEXT_EXTS = ['txt','md','csv','json','log','xml','yaml','yml','ini','conf','js','css','html','htm','ts','py','sh'];
+  function previewKind(f){
+    var ext = extOf(f.name).toLowerCase();
+    var type = (f.type || '').toLowerCase();
+    if(type.indexOf('image/') === 0) return 'image';
+    if(type.indexOf('video/') === 0) return 'video';
+    if(type.indexOf('audio/') === 0) return 'audio';
+    if(type === 'application/pdf' || ext === 'pdf') return 'pdf';
+    if(type.indexOf('text/') === 0 || TEXT_EXTS.indexOf(ext) !== -1) return 'text';
+    return 'unsupported';
+  }
+
+  function downloadFile(id){
+    var f = state.files.filter(function(x){ return x.id===id; })[0];
+    if(!f) return;
+    var url = URL.createObjectURL(f.blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = f.name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  /* ---------------- Render ---------------- */
+  function render(){
+    appEl.innerHTML = '';
+    var wrap = el('div', {style:'display:flex;width:100%;'});
+    wrap.appendChild(renderSidebar());
+    wrap.appendChild(renderMain());
+    appEl.appendChild(wrap);
+    if(state.modal) appEl.appendChild(renderModal());
+  }
+
+  function renderSidebar(){
+    var side = el('div', {class:'sidebar'});
+    side.appendChild(el('div', {class:'back-menu', onclick:function(){ window.location.href = cfg.menuUrl; }}, [
+      el('span', {class:'arrow'}, ['\u2190']), el('span', {}, ['Menu'])
+    ]));
+    side.appendChild(el('div', {class:'brand'}, [
+      el('div', {class:'brand-seal'}, ['L']),
+      el('h1', {}, ['LVO Holdings']),
+      el('div', {class:'eyebrow'}, ['Documents'])
+    ]));
+    side.appendChild(el('div', {class:'side-divider'}));
+
+    var links = el('div', {class:'side-links'});
+    links.appendChild(el('div', {
+      class:'side-link' + (state.activeFolder==='all'?' active':''),
+      onclick:function(){ state.activeFolder='all'; render(); }
+    }, [el('span', {}, ['All Documents']), el('span', {class:'count'}, [String(fileCountFor('all'))])]));
+    state.folders.forEach(function(f){
+      links.appendChild(el('div', {
+        class:'side-link' + (state.activeFolder===f.id?' active':''),
+        onclick:function(){ state.activeFolder=f.id; render(); }
+      }, [el('span', {}, [f.name]), el('span', {class:'count'}, [String(fileCountFor(f.id))])]));
+    });
+    side.appendChild(links);
+    side.appendChild(el('div', {class:'new-folder-link', onclick:function(){ state.modal={type:'newFolder'}; render(); }}, ['+ New folder']));
+
+    if(state.activeFolder !== 'all'){
+      side.appendChild(el('div', {class:'new-folder-link', style:'color:var(--red);', onclick:function(){ deleteFolder(state.activeFolder); }}, ['Delete this folder']));
+    }
+
+    side.appendChild(el('div', {class:'side-divider'}));
+    side.appendChild(el('div', {class:'eyebrow', style:'margin-bottom:10px;'}, ['Other Consoles']));
+    var otherLinks = el('div', {class:'side-links'});
+    otherLinks.appendChild(el('div', {class:'side-link', onclick:function(){ window.location.href = cfg.dashUrl; }}, ['Command Center']));
+    otherLinks.appendChild(el('div', {class:'side-link', onclick:function(){ window.location.href = cfg.chatUrl; }}, ['Chat']));
+    side.appendChild(otherLinks);
+
+    var footer = el('div', {class:'sidebar-footer'});
+    footer.appendChild(el('div', {class:'who'}, [state.files.length + ' document' + (state.files.length===1?'':'s') + ' \u00b7 ' + fmtSize(totalBytes())]));
+    footer.appendChild(el('div', {class:'storage-bar-track'}, [el('div', {class:'storage-bar-fill', style:'width:' + Math.min(100, totalBytes()/(500*1024*1024)*100) + '%;'})]));
+    footer.appendChild(el('div', {class:'form-hint'}, ['Stored locally in this browser (IndexedDB) — not yet synced to a shared server.']));
+    side.appendChild(footer);
+    return side;
+  }
+
+  function renderMain(){
+    var main = el('div', {class:'main main-narrow'});
+    main.appendChild(el('div', {class:'division-head'}, [
+      el('div', {}, [
+        el('div', {class:'eyebrow'}, ['LIBRARY']),
+        el('h3', {}, [folderName(state.activeFolder)])
+      ]),
+      el('div', {class:'head-actions'}, [
+        el('button', {class:'btn btn-ghost', onclick:function(){ state.modal={type:'newFolder'}; render(); }}, ['New Folder']),
+        el('button', {class:'btn', onclick:function(){ document.getElementById('fileInput').click(); }}, ['Upload Files'])
+      ])
+    ]));
+
+    var fileInput = el('input', {type:'file', id:'fileInput', multiple:'multiple', style:'display:none;', onchange:function(e){ handleFiles(e.target.files); e.target.value=''; }});
+    main.appendChild(fileInput);
+
+    var dz = el('div', {class:'drop-zone' + (state.dragging?' drag':'')}, [
+      el('div', {}, ['Drag & drop files here, or click Upload Files above.'])
+    ]);
+    dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', function(){ dz.classList.remove('drag'); });
+    dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('drag'); if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+    main.appendChild(dz);
+
+    var searchRow = el('div', {class:'search-row'});
+    var searchI = el('input', {type:'text', placeholder:'Search documents…', value: state.search});
+    searchI.addEventListener('input', function(e){ state.search = e.target.value; render(); searchI.focus(); searchI.setSelectionRange(searchI.value.length, searchI.value.length); });
+    searchRow.appendChild(searchI);
+    main.appendChild(searchRow);
+
+    var files = visibleFiles();
+    var panel = el('div', {class:'card'});
+    if(files.length===0){
+      panel.appendChild(el('div', {class:'empty-row'}, ['No documents here yet.']));
+    } else {
+      var table = el('table', {class:'file-table'});
+      table.appendChild(el('thead', {}, [el('tr', {}, [
+        el('th', {}, ['Name']), el('th', {}, ['Folder']), el('th', {}, ['Size']), el('th', {}, ['Added']), el('th', {style:'text-align:right;'}, ['Actions'])
+      ])]));
+      var tbody = el('tbody');
+      files.forEach(function(f){
+        tbody.appendChild(el('tr', {}, [
+          el('td', {}, [el('div', {class:'file-name', style:'cursor:pointer;', onclick:function(){ state.modal={type:'preview', fileId:f.id}; render(); }}, [el('div', {class:'file-icon'}, [extOf(f.name).slice(0,4)]), f.name])]),
+          el('td', {class:'file-meta'}, [folderName(f.folderId)]),
+          el('td', {class:'file-meta'}, [fmtSize(f.size)]),
+          el('td', {class:'file-meta'}, [fmtDate(f.createdAt)]),
+          el('td', {}, [el('div', {class:'row-actions'}, [
+            el('button', {class:'icon-btn', onclick:function(){ state.modal={type:'preview', fileId:f.id}; render(); }}, ['Preview']),
+            el('button', {class:'icon-btn', onclick:function(){ downloadFile(f.id); }}, ['Download']),
+            el('button', {class:'icon-btn', onclick:function(){ state.modal={type:'email', fileId:f.id}; render(); }}, ['Email']),
+            el('button', {class:'icon-btn', onclick:function(){ state.modal={type:'rename', fileId:f.id, value:f.name}; render(); }}, ['Rename']),
+            el('button', {class:'icon-btn', onclick:function(){ state.modal={type:'move', fileId:f.id, value:f.folderId||'all'}; render(); }}, ['Move']),
+            el('button', {class:'icon-btn danger', onclick:function(){ deleteFile(f.id); }}, ['Delete'])
+          ])])
+        ]));
+      });
+      table.appendChild(tbody);
+      panel.appendChild(table);
+    }
+    main.appendChild(panel);
+    return main;
+  }
+
+  var activePreviewUrl = null;
+  function closeModal(){
+    if(activePreviewUrl){ URL.revokeObjectURL(activePreviewUrl); activePreviewUrl = null; }
+    state.modal = null;
+    render();
+  }
+
+  function renderModal(){
+    var m = state.modal;
+    var overlay = el('div', {class:'modal-overlay', onclick:function(e){ if(e.target===overlay){ closeModal(); } }});
+    var body;
+
+    if(m.type === 'preview'){
+      var pf = state.files.filter(function(x){ return x.id===m.fileId; })[0];
+      var kind = pf ? previewKind(pf) : 'unsupported';
+      var previewInner = el('div', {class:'preview-body'});
+      var actions = [
+        el('button', {class:'btn btn-ghost', onclick:closeModal}, ['Close']),
+        el('button', {class:'btn', onclick:function(){ downloadFile(m.fileId); }}, ['Download'])
+      ];
+
+      if(!pf){
+        previewInner.appendChild(el('div', {class:'preview-unsupported'}, ['Document not found.']));
+      } else if(kind === 'image'){
+        activePreviewUrl = URL.createObjectURL(pf.blob);
+        previewInner.appendChild(el('img', {src: activePreviewUrl, alt: pf.name}));
+      } else if(kind === 'video'){
+        activePreviewUrl = URL.createObjectURL(pf.blob);
+        previewInner.appendChild(el('video', {src: activePreviewUrl, controls: 'controls', autoplay: false}));
+      } else if(kind === 'audio'){
+        activePreviewUrl = URL.createObjectURL(pf.blob);
+        previewInner.appendChild(el('audio', {src: activePreviewUrl, controls: 'controls'}));
+      } else if(kind === 'pdf'){
+        activePreviewUrl = URL.createObjectURL(pf.blob);
+        previewInner.appendChild(el('iframe', {src: activePreviewUrl}));
+      } else if(kind === 'text'){
+        var pre = el('pre', {}, ['Loading…']);
+        previewInner.appendChild(pre);
+        pf.blob.text().then(function(t){ pre.textContent = t.slice(0, 200000); }).catch(function(){ pre.textContent = 'Could not read file as text.'; });
+      } else {
+        previewInner.appendChild(el('div', {class:'preview-unsupported'}, [
+          'No inline preview for this file type yet (' + extOf(pf.name) + '). Browsers can\u2019t natively render this format \u2014 download it to view, or ask to add a converter (e.g. for .docx/.xlsx/.pptx) if this comes up often.'
+        ]));
+      }
+
+      body = el('div', {class:'modal modal-wide'}, [
+        el('div', {class:'eyebrow form-title'}, [pf ? pf.name : 'Preview']),
+        previewInner,
+        el('div', {class:'modal-actions'}, actions)
+      ]);
+      overlay.appendChild(body);
+      return overlay;
+    }
+
+    if(m.type === 'newFolder'){
+      var nameI = el('input', {type:'text', placeholder:'Folder name'});
+      var err = el('div', {class:'form-err'});
+      body = el('div', {class:'modal'}, [
+        el('div', {class:'eyebrow form-title'}, ['New folder']),
+        nameI, err,
+        el('div', {class:'modal-actions'}, [
+          el('button', {class:'btn btn-ghost', onclick:function(){ state.modal=null; render(); }}, ['Cancel']),
+          el('button', {class:'btn', onclick:async function(){
+            if(!nameI.value.trim()){ err.textContent = 'Folder name is required.'; return; }
+            await createFolder(nameI.value.trim());
+            state.modal = null; render();
+          }}, ['Create'])
+        ])
+      ]);
+    } else if(m.type === 'rename'){
+      var rI = el('input', {type:'text', value:m.value});
+      var errR = el('div', {class:'form-err'});
+      body = el('div', {class:'modal'}, [
+        el('div', {class:'eyebrow form-title'}, ['Rename document']),
+        rI, errR,
+        el('div', {class:'modal-actions'}, [
+          el('button', {class:'btn btn-ghost', onclick:function(){ state.modal=null; render(); }}, ['Cancel']),
+          el('button', {class:'btn', onclick:async function(){
+            if(!rI.value.trim()){ errR.textContent = 'Name is required.'; return; }
+            await renameFile(m.fileId, rI.value.trim());
+            state.modal = null; render();
+          }}, ['Save'])
+        ])
+      ]);
+    } else if(m.type === 'move'){
+      var sel = el('select', {}, [el('option', {value:'all'}, ['All Documents (no folder)'])].concat(
+        state.folders.map(function(f){ return el('option', {value:f.id}, [f.name]); })
+      ));
+      sel.value = m.value;
+      body = el('div', {class:'modal'}, [
+        el('div', {class:'eyebrow form-title'}, ['Move document']),
+        el('label', {class:'field-label'}, ['Destination folder']),
+        sel,
+        el('div', {class:'modal-actions'}, [
+          el('button', {class:'btn btn-ghost', onclick:function(){ state.modal=null; render(); }}, ['Cancel']),
+          el('button', {class:'btn', onclick:async function(){
+            await moveFile(m.fileId, sel.value);
+            state.modal = null; render();
+          }}, ['Move'])
+        ])
+      ]);
+    } else if(m.type === 'email'){
+      var f = state.files.filter(function(x){ return x.id===m.fileId; })[0];
+      var toI = el('input', {type:'text', placeholder:'name@company.com'});
+      var subjI = el('input', {type:'text', value: f ? ('Document: ' + f.name) : ''});
+      var msgI = el('textarea', {placeholder:'Message (optional)'});
+      var errE = el('div', {class:'form-err'});
+      var sendBtn = el('button', {class:'btn'}, ['Send']);
+      sendBtn.addEventListener('click', function(){
+        if(!toI.value.trim()){ errE.textContent = 'Recipient email is required.'; return; }
+        errE.textContent = '';
+        sendEmail(m.fileId, toI.value.trim(), subjI.value.trim(), msgI.value.trim(), errE, sendBtn);
+      });
+      body = el('div', {class:'modal'}, [
+        el('div', {class:'eyebrow form-title'}, ['Email document' + (f ? ' — ' + f.name : '')]),
+        el('div', {style:'margin-bottom:14px;'}, [el('label', {class:'field-label'}, ['To']), toI]),
+        el('div', {style:'margin-bottom:14px;'}, [el('label', {class:'field-label'}, ['Subject']), subjI]),
+        el('div', {style:'margin-bottom:14px;'}, [el('label', {class:'field-label'}, ['Message']), msgI]),
+        errE,
+        el('div', {class:'modal-actions'}, [
+          el('button', {class:'btn btn-ghost', onclick:function(){ state.modal=null; render(); }}, ['Cancel']),
+          sendBtn
+        ])
+      ]);
+    }
+
+    overlay.appendChild(body);
+    return overlay;
+  }
+
+  /* ---------------- Boot ---------------- */
+  async function boot(){
+    try{
+      db = await openDb();
+      await loadAll();
+      render();
+    }catch(e){
+      appEl.innerHTML = '<div class="loading">Could not open local storage: ' + e.message + '</div>';
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
