@@ -9,15 +9,166 @@
   var POLL_MS     = 150;
   var waited      = 0;
 
+  // How long before expiry to show the "still there?" banner. Your
+  // original session is only 150 seconds (SESSION_MS in LVO-Directory's
+  // login page), so a long lead time would show the banner immediately —
+  // 45s gives people a real window to click "Stay signed in" before the
+  // kick fires.
+  var WARN_BEFORE_MS = 45 * 1000;
+  var TICK_MS = 1000;
+
+  // How long to extend the session by on a successful refresh. This is
+  // decided entirely client-side (lvo_expiry is just a clock the browser
+  // trusts, not something Supabase enforces) — 30 minutes is far more
+  // livable for actually working in the document library than the
+  // original 150s login window, while the real security boundary (the
+  // TOTP code + shared Supabase login) is unchanged.
+  var REFRESH_SESSION_MS = 30 * 60 * 1000;
+
+  // Real endpoint: the /api/refresh route added alongside /api/login in
+  // the LVO-Setup project (same Vercel deployment as lvo-setup.vercel.app).
+  // Cookies live on .lvo-cloud.cloud, NOT vercel.app, so the browser won't
+  // auto-attach them cross-domain — instead we read sb_refresh_token
+  // ourselves (readable here since docu.lvo-cloud.cloud shares the parent
+  // domain) and send it explicitly in the request body.
+  var SESSION_REFRESH_URL = 'https://lvo-setup.vercel.app/api/refresh';
+
+  var warnTimer = null, kickTimer = null, tickTimer = null, bannerEl = null;
+
+
   function getCookie(name) {
     var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
     return match ? decodeURIComponent(match[1]) : null;
   }
 
-  function kick() {
+  function clearAuthCookies() {
     document.cookie = 'lvo_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.lvo-cloud.cloud; path=/';
     document.cookie = 'lvo_expiry=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.lvo-cloud.cloud; path=/';
+  }
+
+  function kick() {
+    clearAuthCookies();
     window.location.replace(LOGIN);
+  }
+
+  function clearTimers() {
+    if (warnTimer) clearTimeout(warnTimer);
+    if (kickTimer) clearTimeout(kickTimer);
+    if (tickTimer) clearInterval(tickTimer);
+    warnTimer = kickTimer = tickTimer = null;
+  }
+
+  function fmtMMSS(ms) {
+    var s = Math.max(0, Math.round(ms / 1000));
+    var m = Math.floor(s / 60); s = s % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function removeBanner() {
+    if (bannerEl && bannerEl.parentNode) bannerEl.parentNode.removeChild(bannerEl);
+    bannerEl = null;
+    if (document.body) document.body.style.paddingTop = '';
+  }
+
+  function showWarningBanner(expiry) {
+    if (document.getElementById('session-warning-banner')) return;
+    var bar = document.createElement('div');
+    bar.id = 'session-warning-banner';
+    bar.setAttribute('style',
+      'position:fixed;top:0;left:0;right:0;z-index:999;' +
+      'background:#161410;border-bottom:1px solid #8a7238;color:#eae7e0;' +
+      'font-family:"IBM Plex Mono",monospace;font-size:12.5px;' +
+      'padding:10px 18px;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;');
+
+    var label = document.createElement('span');
+    bar.appendChild(label);
+
+    var btn = document.createElement('button');
+    btn.textContent = 'Stay signed in';
+    btn.setAttribute('style',
+      'font-family:inherit;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;' +
+      'background:#C8A96E;color:#0a0a0c;border:none;padding:7px 14px;cursor:pointer;border-radius:2px;');
+    btn.onclick = function () { requestMoreTime(btn, label); };
+    bar.appendChild(btn);
+
+    var closeBtn = document.createElement('span');
+    closeBtn.textContent = '\u2715';
+    closeBtn.setAttribute('style', 'cursor:pointer;color:#8b8a86;padding:0 4px;');
+    closeBtn.onclick = function () { removeBanner(); };
+    bar.appendChild(closeBtn);
+
+    document.body.appendChild(bar);
+    bannerEl = bar;
+    document.body.style.paddingTop = bar.offsetHeight + 'px';
+
+    function tick() {
+      var remaining = expiry - Date.now();
+      label.textContent = 'Your session expires in ' + fmtMMSS(remaining) + ' \u2014 ';
+      if (remaining <= 0) clearInterval(tickTimer);
+    }
+    tick();
+    tickTimer = setInterval(tick, TICK_MS);
+  }
+
+  function setSessionCookies(data, expiry) {
+    var expiryUTC = new Date(expiry).toUTCString();
+    document.cookie = 'lvo_token=' + data.token + '; expires=' + expiryUTC + '; domain=.lvo-cloud.cloud; path=/; SameSite=Lax';
+    document.cookie = 'lvo_expiry=' + expiry + '; expires=' + expiryUTC + '; domain=.lvo-cloud.cloud; path=/; SameSite=Lax';
+    if (data.sb_access_token && data.sb_refresh_token) {
+      document.cookie = 'sb_access_token=' + data.sb_access_token + '; expires=' + expiryUTC + '; domain=.lvo-cloud.cloud; path=/; SameSite=Lax';
+      document.cookie = 'sb_refresh_token=' + data.sb_refresh_token + '; expires=' + expiryUTC + '; domain=.lvo-cloud.cloud; path=/; SameSite=Lax';
+    }
+  }
+
+  function requestMoreTime(btn, label) {
+    var refreshToken = getCookie('sb_refresh_token');
+    if (!refreshToken) {
+      label.textContent = 'No refresh token found \u2014 please log in again. ';
+      return;
+    }
+    btn.disabled = true;
+    var original = btn.textContent;
+    btn.textContent = 'Requesting\u2026';
+    fetch(SESSION_REFRESH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (!res.ok) throw new Error(data.error || ('server said ' + res.status));
+          return data;
+        });
+      })
+      .then(function (data) {
+        var newExpiry = Date.now() + REFRESH_SESSION_MS;
+        setSessionCookies(data, newExpiry);
+        clearTimers();
+        removeBanner();
+        scheduleFromExpiry(newExpiry);
+      })
+      .catch(function (e) {
+        btn.disabled = false;
+        btn.textContent = original;
+        label.textContent = 'Could not extend your session (' + e.message + '). ';
+      });
+  }
+
+  function scheduleFromExpiry(expiry) {
+    var remaining = expiry - Date.now();
+    if (remaining <= 0) { kick(); return; }
+
+    kickTimer = setTimeout(kick, remaining);
+
+    var warnIn = remaining - WARN_BEFORE_MS;
+    var doShow = function () { showWarningBanner(expiry); };
+    if (warnIn <= 0) {
+      if (document.body) doShow(); else document.addEventListener('DOMContentLoaded', doShow);
+    } else {
+      warnTimer = setTimeout(function () {
+        if (document.body) doShow(); else document.addEventListener('DOMContentLoaded', doShow);
+      }, warnIn);
+    }
   }
 
   function check() {
@@ -26,11 +177,18 @@
     var valid  = token && expiry && Date.now() < expiry;
 
     if (valid) {
-      setTimeout(kick, expiry - Date.now());
-      document.addEventListener('visibilitychange', function() {
+      scheduleFromExpiry(expiry);
+      document.addEventListener('visibilitychange', function () {
         if (!document.hidden) {
           var exp = parseInt(getCookie('lvo_expiry') || '0', 10);
-          if (!exp || Date.now() >= exp) { kick(); }
+          if (!exp || Date.now() >= exp) {
+            kick();
+          } else {
+            // Cookie may have been refreshed in another tab — resync.
+            clearTimers();
+            removeBanner();
+            scheduleFromExpiry(exp);
+          }
         }
       });
       return;
